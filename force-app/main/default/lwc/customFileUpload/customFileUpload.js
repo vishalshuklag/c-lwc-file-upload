@@ -2,6 +2,7 @@ import { LightningElement, track, api } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import serverSaveFile from '@salesforce/apex/FilesUploadController.saveTheChunk';
 import { RefreshEvent } from 'lightning/refresh';
+import sendEmailWithAttachment from '@salesforce/apex/SendEmailWithAttachmnent.sendEmailWithAttachment';
 
 export default class LightningMultiFileUpload extends LightningElement {
 
@@ -102,9 +103,12 @@ export default class LightningMultiFileUpload extends LightningElement {
                     this.saveToFile(index, fileContent, startPosition, endPosition, attachId);
                 } else {
                     if (this.uploadableFilesContainer.length == (index + 1)) {
+                        
+                        this.showToast('Success!!', 'Files has been uploaded successfully!!!', 'success');
+                        // Send Apex Email after File upload
+                        this.sendEmail();
                         this.isSpinner = false;
                         this.spinnerMessage = '';
-                        this.showToast('Success!!', 'Files has been uploaded successfully!!!', 'success');
                     } else {
                         //Upload Next File
                         this.uploadHelper(index + 1);
@@ -121,6 +125,17 @@ export default class LightningMultiFileUpload extends LightningElement {
                 window.console.log(error);
                 this.showToast('Error while uploading File', error.message, 'error');
             });
+    }
+
+    async sendEmail() {
+        let emailResults = await sendEmailWithAttachment({recordId : this.recordId, emailAddress: '01vishals@gmail.com'});
+
+        if (emailResults.isSuccess) {
+            this.showToast('Success','Email Sent successfully', 'success');
+        } else {
+            this.showToast('Error!', emailResults.errorMessage, 'error');
+        }
+
     }
 
     showToast(t, m, v) {
